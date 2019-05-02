@@ -12,7 +12,7 @@ const events = eventIds => {
   Event.find({ _id: { $in: eventIds } })
     .then(events => {
       return events.map(event => {
-        return { ...event._doc, creator: user.bind(this, event._doc.creator) }
+        return { ...event._doc, creator: event._doc.creator }
       })
     })
     .catch(err => {
@@ -23,9 +23,11 @@ const events = eventIds => {
 const user = userId => {
   return User.findById(userId)
     .then(user => {
+      console.log(user._doc.createdEvents)
       return {
         ...user._doc,
-        createdEvents: events.bind(this, user._doc.createdEvents),
+        // createdEvents: events.bind(this, user._doc.createdEvents),
+        createdEvents: user._doc.createdEvents,
       }
     })
     .catch(err => {
@@ -102,24 +104,20 @@ const schema = buildSchema(`
 
 const root = {
   events: () => {
-    return (
-      Event.find()
-        // .populate('creator')
-        .then(events => {
-          return events.map(event => {
-            console.log(event)
-            return {
-              ...event._doc,
-              _id: event.id,
-              creator: user.bind(this, event._doc.creator),
-              // creator: user.bind(this, '5cc7cad8957f36033b564a1f'),
-            }
-          })
+    return Event.find()
+      .then(events => {
+        return events.map(event => {
+          // console.log(event)
+          return {
+            ...event._doc,
+            creator: user.bind(this, event.creator),
+            // creator: user.bind(this, '5cc7cad8957f36033b564a1f'),
+          }
         })
-        .catch(err => {
-          throw err
-        })
-    )
+      })
+      .catch(err => {
+        throw err
+      })
   },
   createEvent: args => {
     const event = new Event({
@@ -127,17 +125,21 @@ const root = {
       price: +args.eventInput.price,
       description: args.eventInput.description,
       date: new Date(args.eventInput.date),
-      creator: '5cc7cad8957f36033b564a1f', //todo replace w/ dynamic
+      creator: '5cca3bd6349f5c005e8f4e94', //todo replace w/ dynamic
     })
     let createdEvent
     return event
       .save()
       .then(result => {
-        createdEvent = { ...result._doc }
-        return User.findById('5cc7cad8957f36033b564a1f')
+        createdEvent = {
+          ...result._doc,
+          _id: result.id,
+          creator: user.bind(this, result._doc.creator),
+        }
+        return User.findById('5cca3bd6349f5c005e8f4e94')
       })
       .then(user => {
-        if (user.length == 0) {
+        if (user.length === 0) {
           throw new Error('User not found')
         }
         user.createdEvents.push(event)
