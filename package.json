@@ -1,0 +1,21 @@
+{
+  "name": "graphql-node-mongo-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon src/index.js localhost 8080"
+  },
+  "dependencies": {
+    "bcryptjs": "2.4.3",
+    "body-parser": "1.19.0",
+    "express": "4.16.4",
+    "express-graphql": "0.8.0",
+    "graphql": "14.2.1",
+    "mongoose": "5.5.4"
+  },
+  "devDependencies": {
+    "nodemon": "1.18.4"
+  },
+  "keywords": []
+}
