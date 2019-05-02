@@ -18,6 +18,13 @@ const events = async eventIds => {
   }
 }
 
+const singleEvent = async eventId => {
+  const event = await Event.findOne({ _id: eventId })
+  return {
+    _id: event.id,
+  }
+}
+
 const user = async userId => {
   try {
     const userInfo = await User.findById(userId)
@@ -76,27 +83,6 @@ module.exports = {
     }
   },
 
-  bookings: async () => {
-    try {
-      const bookings = await Booking.find()
-      return bookings.map(booking => {
-        return {
-          ...booking._doc,
-          createdAt: new Date(booking._doc.createdAt).toISOString(),
-          updatedAt: new Date(booking._doc.updatedAt).toISOString(),
-        }
-      })
-    } catch (err) {
-      throw err
-    }
-  },
-  createBook: async args => {
-    const booking = new Booking({
-      user: await User.find(args.userId),
-    })
-  },
-  cancelBook: async args => {},
-
   createUser: async args => {
     try {
       const existingUser = await User.find({ email: args.userInput.email })
@@ -117,20 +103,39 @@ module.exports = {
     }
   },
 
-  // createBook: async args => {
-  //   const event = Event.findOne({ _id: args.eventId })
-  //   const booking = new Booking({
-  //     user: '5cca66ba9cefe703b89905a6',
-  //     event: event,
-  //   })
-  //   const savedBook = await booking.save()
-  //   return {
-  //     ...savedBook,
-  //     createdAt: new Date(savedBook._doc.createdAt).toISOString(),
-  //     updatedAt: new Date(savedBook._doc.updatedAt).toISOString(),
-  //   }
-  // },
-  // cancelBook: async eventId => {
-  //   const cancelledBook = await Booking.findById(eventId)
-  // },
+  createBook: async eventId => {
+    const fetchEvent = await Event.findOne({ _id: eventId })
+    const booking = new Booking({
+      user: '5cca66ba9cefe703b89905a6',
+      event: fetchEvent,
+    })
+    const savedBook = await booking.save()
+    return {
+      ...savedBook,
+      createdAt: new Date(savedBook._doc.createdAt).toISOString(),
+      updatedAt: new Date(savedBook._doc.updatedAt).toISOString(),
+    }
+  },
+
+  bookings: async () => {
+    try {
+      const bookings = await Booking.find()
+      return bookings.map(booking => {
+        return {
+          ...booking._doc,
+          _id: booking.id,
+          user: user.bind(this, booking._doc.user),
+          event: singleEvent.bind(this, booking._doc.event),
+          createdAt: new Date(booking._doc.createdAt).toISOString(),
+          updatedAt: new Date(booking._doc.updatedAt).toISOString(),
+        }
+      })
+    } catch (err) {
+      throw err
+    }
+  },
+  cancelBook: async eventId => {
+    // const cancelledBook = await Booking.findById(eventId)
+    return true
+  },
 }
